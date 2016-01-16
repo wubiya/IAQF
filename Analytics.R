@@ -22,10 +22,27 @@ industry$Chg[-1] <- diff(industry$Price)/industry$Price[-length(industry$Price)]
 y <- industry$Chg[is.element(industry$Date, oil$Date)]
 x <- oil$Chg[is.element(oil$Date, industry$Date)]
 
+y <- cumsum(y)
+x <- cumsum(x)
+
+x <- x[seq(1,length(x),22)]
+y <- y[seq(1,length(y),22)]
+
+x<- diff(x)
+y<- diff(y)
+
 regdata<- data.frame(y[-1],x[-length(x)])
 colnames(regdata) <- c("InduPrice","OilPrice")
-ls<-lm(regdata[5500:6000,])
+ls<-lm(regdata)
 summary(ls)
+
+
+
+
+
+
+
+
 
 
 
