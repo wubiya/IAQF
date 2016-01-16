@@ -1,4 +1,6 @@
 library(gdata)
+library(vars)
+
 rm(list=ls())
 
 filename <- "/Users/wubiya/Dropbox/IAQF 2016/2016/Data/BB_Oil_Price_Historical.xlsx"
@@ -32,10 +34,22 @@ x<- diff(x)
 y<- diff(y)
 
 regdata<- data.frame(y[-1],x[-length(x)])
-colnames(regdata) <- c("InduPrice","OilPrice")
+colnames(regdata) <- c("InduChg","OilChg")
+
 ls<-lm(regdata)
+print("OLS regression result")
 summary(ls)
 
+ls<-VAR(regdata)
+print("VAR regression")
+summary(ls)
+
+regdata<- data.frame(y[-1],x[-length(x)],y[-length(y)])
+colnames(regdata) <- c("InduChg","OilChg","InduCng_Pre")
+
+ls<-lm(regdata)
+print("add the previous month as another factor")
+summary(ls)
 
 
 
