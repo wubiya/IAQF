@@ -32,14 +32,14 @@ read.industry<-function(sheetnum =2, filename = "~/Dropbox/IAQF 2016/2016/Data/I
   return (industry)
 }
 
-# oil.namelist <-c("CL","CO","NG","XB","HO","QS")
-# oil.list<-list()
-# 
-# for (i in 1:6){
-#   oil.list[[i]]<-read.oil(i)
-# }
-# 
-# save(oil.namelist,oil.list, file="~/Dropbox/IAQF 2016/2016/Data/Rdata/OIL.Rdata")
+oil.namelist <-c("CL","CO","NG","XB","HO","QS")
+oil.list<-list()
+
+for (i in 1:6){
+  oil.list[[i]]<-read.oil(i)
+}
+
+save(oil.namelist,oil.list, file="~/Dropbox/IAQF 2016/2016/Data/Rdata/OIL.Rdata")
 
 
 industry.namelist<-c("Banks","Retailing","Automobiles & Components","Media","Insurance","Transportation",
