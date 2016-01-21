@@ -3,7 +3,7 @@ library(vars)
 
 rm(list=ls())
 
-level2numeric<-function(level_){as.numeric(levels(level_))[level_]}
+level2numeric<-function(level_){return(as.numeric(levels(level_))[level_])}
 
 read.oil <-function(sheetnum=1,filename ="~/Dropbox/IAQF 2016/2016/Data/OIL.xlsx")
 {
