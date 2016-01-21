@@ -29,3 +29,5 @@ colnames(regdata) <- c("InduChg","OilChg","InduCng_Pre")
 ls<-lm(regdata)
 print("add the previous month as another factor")
 print(summary(ls))
+
+
