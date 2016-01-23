@@ -1,53 +1,75 @@
 library(gdata)
 library(lmtest)
 library(sandwich)
+library(DataCombine)
+
 rm(list=ls())
-
-load("OIL.Rdata")
-load("oil_spot.Rdata")
-load("INDEX.Rdata")
-load("sp500.Rdata")
-
-industry.namelist<-c("Banks","Retailing","Automobiles&Components","Media","Insurance","Transportation","Energy","RealEstate","Software&Services","TechnologyHardware&Equipment","PharmBiotech&LifeSciences","DiversifiedFinancials","CapitalGoods","Utilities","Food&StaplesRetailing","HealthCareEquipment&Services","ConsumerDurables&Apparel","ConsumerServices","Household&PersonalProducts","CommercialProfessionalServices","FoodBeverage&Tobacco","TelecommunicationServices","Materials","Semiconductors&SemiconductorEquipment")
-
-sp500$LOG_RTN_5D<-numeric(length(sp500$Date))
-sp500$LOG_RTN_5D[6:length(sp500$Date)]<-diff(log(sp500$PX_LAST),5)
-
-simple_regression<-function(oilnum=1,startpoint="1983-01-01",endpoint="1990-08-01"){
-  for(i in 1:24){
-    industry<-industry.list[[i]]
-    industry$LOG_RTN_5D<-numeric(length(industry$Date))
-    industry$LOG_RTN_5D[6:length(industry$Date)]<-diff(log(industry$PX_LAST),5)
-    
-    oil<-oil.list[[oilnum]]
-    oil$LOG_RTN_5D<-numeric(length(oil$Date))
-    oil$LOG_RTN_5D[6:length(oil$Date)]<-diff(log(oil$PX_LAST),5)
-
-    #oil<-oil_spot.list[[oilnum]]
-    #oil$LOG_RTN_5D<-numeric(length(oil$Date))
-    #oil$LOG_RTN_5D[6:length(oil$Date)]<-diff(log(oil$PX_LAST),5)
-    
-    x <- oil$LOG_RTN_5D[is.element(oil$Date,industry$Date)&is.element(oil$Date,sp500$Date)&oil$Date>=startpoint&oil$Date<endpoint]
-    y <- industry$LOG_RTN_5D[is.element(industry$Date,oil$Date)&is.element(industry$Date,sp500$Date)&industry$Date>=startpoint&industry$Date<endpoint]
-    z<-sp500$LOG_RTN_5D[is.element(sp500$Date,oil$Date)&is.element(sp500$Date,industry$Date)&sp500$Date>=startpoint&sp500$Date<endpoint]
-    
-    if(length(x)>0){
-      #x<-x[seq(1,length(x),5)]
-      #y<-y[seq(1,length(y),5)]
-      regdata<- data.frame(y[3:length(y)],z[3:length(z)],x[3:length(x)],x[2:(length(x)-1)],x[1:(length(x)-2)])
-      colnames(regdata) <- c("industry(t)","sp500(t)","oil(t)","oil(t-1)","oil(t-2)")
-      #regdata<- data.frame(y[4:length(y)],z[4:length(z)],x[4:length(x)-1],x[4:length(x)-2],x[4:length(x)-3])
-      #colnames(regdata) <- c("industry(t)","sp500(t-1)","oil(t-1)","oil(t-2)","oil(t-3)")
-      ls = lm(regdata)
-      summ <- summary(ls)
-      summ$coefficients <- unclass(coeftest(ls, vcov. = NeweyWest))
-      data<-summ$coefficients
-      colnames(data)<-c("Estimate","StdError","t-value","Pr(>|t|)")
-      filename<-paste(startpoint,' to ',endpoint,'.csv',sep='')
-      write.fwf(data,filename,append=TRUE,rownames=TRUE,colnames=TRUE,rowCol=industry.namelist[i],sep=',')
-    }
-  }
+filepath <- "~/Dropbox/IAQF 2016/2016/Data/Rdata/"
+load(paste0(filepath,"OIL.Rdata"))
+load(paste0(filepath,"INDEX.Rdata"))
+load(paste0(filepath,"sp500.Rdata"))
+AddReturn<-function(DataFrame)
+{
+  len_ = length(DataFrame$Date)
+  DataFrame$LOG_RTN_1D<-numeric(len_)*NA
+  DataFrame$LOG_RTN_1W<-numeric(len_)*NA
+  DataFrame$LOG_RTN_1M<-numeric(len_)*NA
+  DataFrame$LOG_RTN_1D[2:len_]<-diff(log(DataFrame$PX_LAST))
+  DataFrame$LOG_RTN_1W[6:len_]<-diff(log(DataFrame$PX_LAST),5)
+  DataFrame$LOG_RTN_1M[23:len_]<-diff(log(DataFrame$PX_LAST),22)
+  DataFrame<-slide(DataFrame,Var="LOG_RTN_1D",NewVar="LOG_RTN_1D_LAG",slideBy=-1,reminder = FALSE)
+  DataFrame<-slide(DataFrame,Var="LOG_RTN_1W",NewVar="LOG_RTN_1W_LAG",slideBy=-5,reminder = FALSE)
+  DataFrame<-slide(DataFrame,Var="LOG_RTN_1M",NewVar="LOG_RTN_1M_LAG",slideBy=-22,reminder = FALSE)
+  DataFrame<-slide(DataFrame,Var="LOG_RTN_1D_LAG",NewVar="LOG_RTN_1D_LAG_SQ",slideBy=-1,reminder = FALSE)
+  DataFrame<-slide(DataFrame,Var="LOG_RTN_1W_LAG",NewVar="LOG_RTN_1W_LAG_SQ",slideBy=-5,reminder = FALSE)
+  DataFrame<-slide(DataFrame,Var="LOG_RTN_1M_LAG",NewVar="LOG_RTN_1M_LAG_SQ",slideBy=-22,reminder = FALSE)
+  return (DataFrame)
 }
-simple_regression(1,"1983-01-01","2006-12-31")
-simple_regression(1,"2009-02-01","2014-07-31")
-simple_regression(1,"2014-08-01","2016-01-21")
+
+simple_regression<-function(sdate,tdate,inducol,oilcol,spcol){
+  if (file.exists(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv')))
+      file.remove(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
+  
+  sink(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'),append=TRUE)
+  cat("Industry",c(paste("Oil", oilcol, sep="_"),paste("SP500",spcol,sep="_")),'\n',sep=",")
+  sdate<-as.Date(sdate)
+  tdate<-as.Date(tdate)
+  for(i in 1:24){
+    
+    
+    
+    industry<-industry.list[[i]]
+    industry<-AddReturn(industry)
+    
+    subindustry<-industry[industry$Date> sdate & industry$Date < tdate & industry$Date %in% oil$Date,]
+    suboil <- oil[oil$Date%in%subindustry$Date,]
+    subsp500 <- sp500[sp500$Date%in%subindustry$Date,]
+    
+    regdata<- data.frame(subindustry[inducol],suboil[oilcol],subsp500[spcol])
+    colnames(regdata) <-c( paste(industry.namelist[i], inducol, sep="_"), paste("Oil", oilcol, sep="_"),paste("SP500",spcol,sep="_"))
+    
+    ls = lm(regdata)
+    summ <- summary(ls)
+    cat(industry.namelist[i],unname(summ$coefficients[-1,3]),'\n',sep=",")
+    
+  }
+  sink()
+  unlink(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
+}
+
+
+sp500<-AddReturn(sp500)
+oil<-oil.list[[1]]
+oil<-AddReturn(oil)
+
+sp500<-sp500[sp500$Date%in%oil$Date,]
+oil<-oil[oil$Date%in%sp500$Date,]
+
+sdate<-"2009-1-1"
+tdate<-"2014-1-1"
+inducol <- "LOG_RTN_1D"
+oilcol <- c("LOG_RTN_1D","LOG_RTN_1D_LAG")
+spcol <-c("LOG_RTN_1D","LOG_RTN_1D_LAG")
+
+
+simple_regression(sdate,tdate,inducol,oilcol,spcol)
