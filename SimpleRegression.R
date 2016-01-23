@@ -27,6 +27,12 @@ AddReturn<-function(DataFrame)
 }
 
 simple_regression<-function(sdate,tdate,inducol,oilcol,spcol){
+  # sdate,tdate is the start/end date of regression, format is like "2015-1-1"
+  # inducol is the column you want to use to represent return, including frequency of day,week,and month 
+  # which is represented by LOG_RTN_1D,LOG_RTN_1W,LOG_RTN_1M
+  # oilcol and spcol is independent variable as log return, which is similar to inducol, containing different frequency, 
+  # but we introduced lag term, can be represented as LOG_RTN_1D_LAG(one term lag),LOG_RTN_1D_LAQ_SQ(two tern lag)
+  
   if (file.exists(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv')))
       file.remove(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
   
