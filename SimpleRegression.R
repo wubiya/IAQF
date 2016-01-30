@@ -26,7 +26,7 @@ AddReturn<-function(DataFrame)
   return (DataFrame)
 }
 
-simple_regression<-function(sdate,tdate,inducol,oilcol,spcol){
+simple_regression_industry<-function(sdate,tdate,inducol,oilcol,spcol){
   # sdate,tdate is the start/end date of regression, format is like "2015-1-1"
   # inducol is the column you want to use to represent return, including frequency of day,week,and month 
   # which is represented by LOG_RTN_1D,LOG_RTN_1W,LOG_RTN_1M
@@ -64,6 +64,45 @@ simple_regression<-function(sdate,tdate,inducol,oilcol,spcol){
 }
 
 
+simple_regression_swf<-function(sdate,tdate,swfcol,oilcol){
+  # sdate,tdate is the start/end date of regression, format is like "2015-1-1"
+  # inducol is the column you want to use to represent return, including frequency of day,week,and month 
+  # which is represented by LOG_RTN_1D,LOG_RTN_1W,LOG_RTN_1M
+  # oilcol and spcol is independent variable as log return, which is similar to inducol, containing different frequency, 
+  # but we introduced lag term, can be represented as LOG_RTN_1D_LAG(one term lag),LOG_RTN_1D_LAQ_SQ(two tern lag)
+  
+  if (file.exists(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv')))
+    file.remove(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
+  
+  sink(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'),append=TRUE)
+  cat("Industry",c(paste("Oil", oilcol, sep="_"),paste("SP500",spcol,sep="_")),'\n',sep=",")
+  sdate<-as.Date(sdate)
+  tdate<-as.Date(tdate)
+  for(i in 1:24){
+    
+    
+    
+    industry<-industry.list[[i]]
+    industry<-AddReturn(industry)
+    
+    subindustry<-industry[industry$Date> sdate & industry$Date < tdate & industry$Date %in% oil$Date,]
+    suboil <- oil[oil$Date%in%subindustry$Date,]
+    subsp500 <- sp500[sp500$Date%in%subindustry$Date,]
+    
+    regdata<- data.frame(subindustry[inducol],suboil[oilcol],subsp500[spcol])
+    colnames(regdata) <-c( paste(industry.namelist[i], inducol, sep="_"), paste("Oil", oilcol, sep="_"),paste("SP500",spcol,sep="_"))
+    
+    ls = lm(regdata)
+    summ <- summary(ls)
+    cat(industry.namelist[i],unname(summ$coefficients[-1,3]),'\n',sep=",")
+    
+  }
+  sink()
+  unlink(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
+}
+
+
+
 sp500<-AddReturn(sp500)
 oil<-oil.list[[1]]
 oil<-AddReturn(oil)
@@ -78,4 +117,4 @@ oilcol <- c("LOG_RTN_1D","LOG_RTN_1D_LAG")
 spcol <-c("LOG_RTN_1D","LOG_RTN_1D_LAG")
 
 
-simple_regression(sdate,tdate,inducol,oilcol,spcol)
+simple_regression_regression(sdate,tdate,inducol,oilcol,spcol)

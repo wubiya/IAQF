@@ -36,6 +36,7 @@ read.swf <- function(country,path="~/Dropbox/IAQF 2016/2016/Data/SWFdata/")
 {
   swf <- read.csv(paste0(path,country,".csv"))
   colnames(swf) <- c("Date","PX_LAST")
+  swf$Date <- as.Date(as.character(swf$Date),format="%m/%d/%y")
   return (swf)
 }
 
