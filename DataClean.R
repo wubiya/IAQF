@@ -32,6 +32,15 @@ read.industry<-function(sheetnum =2, filename = "~/Dropbox/IAQF 2016/2016/Data/I
   return (industry)
 }
 
+read.swf <- function(country,path="~/Dropbox/IAQF 2016/2016/Data/SWFdata/")
+{
+  swf <- read.csv(paste0(path,country,".csv"))
+  colnames(swf) <- c("Date","PX_LAST")
+  return (swf)
+}
+
+
+
 oil.namelist <-c("CL","CO","NG","XB","HO","QS")
 oil.list<-list()
 
@@ -58,8 +67,15 @@ for (i in 1:24)
 
 save(industry.namelist,industry.list,file="~/Dropbox/IAQF 2016/2016/Data/Rdata/INDEX.Rdata")
 
+swf.namelist <-c("mexico","algeria","russia","brazil","saudi","canada")
+swf.list<-list()
+for (i in 1:6)
+{
+  swf.list[[i]]<-read.swf(swf.namelist[i])
+}
 
 
+save(swf.namelist,swf.list,file="~/Dropbox/IAQF 2016/2016/Data/Rdata/SWF.Rdata")
 
 
 
