@@ -89,22 +89,23 @@ simple_regression_swf<-function(sdate,tdate){
     file.remove(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
   
   sink(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'),append=TRUE)
-  cat("SWF","Oil_CUR","free degree",'\n',sep=",")
+  cat("SWF","Oil_CUR","p-value","free degree","cor","cor.test",'\n',sep=",")
   sdate<-as.yearmon(as.Date(sdate))
   tdate<-as.yearmon(as.Date(tdate))
   for(i in 1:6){
     swf<-swf.list[[i]]
     swf<-MonthData(swf)
-    
+    write.csv(swf, paste0("~/Dropbox/IAQF/code/csvfile/",swf.namelist[i],".csv"))
     subswf<-swf[swf$Date>= sdate & swf$Date <= tdate & swf$Date %in% oil$Date,]
     suboil <- oil[oil$Date%in%subswf$Date,]
     
-    regdata<- data.frame(subswf$LOG_RTN,suboil$LOG_RTN)
+    regdata<- data.frame(subswf$PX_LAST,suboil$PX_LAST)
     colnames(regdata) <-c("SWF","Oil_CUR")
     
     lms = lm(regdata)
     summ <- summary(lms)
-    cat(swf.namelist[i],unname(summ$coefficients[-1,3]),summ$df[2], '\n',sep=",")
+    cortest<-cor.test(subswf$PX_LAST,suboil$PX_LAST)
+    cat(swf.namelist[i],unname(summ$coefficients[-1,3]),unname(summ$coefficients[-1,4]), summ$df[2], cortest$p.value,cortest$estimate, '\n',sep=",")
     
   }
   sink(file=NULL)
@@ -134,7 +135,7 @@ simple_regression_regression(sdate,tdate,inducol,oilcol,spcol)
 
 oil<-oil.list[[1]]
 oil<-MonthData(oil)
-sdate<-"2014-8-1"
+sdate<-"2014-9-1"
 tdate<-"2016-2-1"
 simple_regression_swf(sdate,tdate)
 
