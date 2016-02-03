@@ -128,7 +128,7 @@ oilcol <- c("LOG_RTN_1D","LOG_RTN_1D_LAG")
 spcol <-c("LOG_RTN_1D","LOG_RTN_1D_LAG")
 
 
-simple_regression_regression(sdate,tdate,inducol,oilcol,spcol)
+simple_regression_industry(sdate,tdate,inducol,oilcol,spcol)
 
 
 
