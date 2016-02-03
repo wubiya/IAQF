@@ -40,6 +40,15 @@ read.swf <- function(country,path="~/Dropbox/IAQF 2016/2016/Data/SWFdata/")
   return (swf)
 }
 
+read.swf2 <- function(sheetnum, filename="~/Dropbox/IAQF 2016/2016/Data/SWF.xlsx")
+{
+  swf <- read.xls (filename, sheet = sheetnum, header = TRUE)
+  colnames(swf) <- c("Date","PX_LAST")
+  swf <- swf[-1,]
+  swf$Date <- as.Date(as.character(swf$Date))
+  swf$PX_LAST<- level2numeric(swf$PX_LAST)
+  return (swf)
+}
 
 
 oil.namelist <-c("CL","CO","NG","XB","HO","QS")
@@ -78,9 +87,15 @@ for (i in 1:6)
 
 save(swf.namelist,swf.list,file="~/Dropbox/IAQF 2016/2016/Data/Rdata/SWF.Rdata")
 
+swf2.namelist <-c("saudi","china","norway")
+swf2.list<-list()
+for (i in 1:3)
+{
+  swf2.list[[i]]<-read.swf2(i*2)
+}
 
 
-
+save(swf2.namelist,swf2.list,file="~/Dropbox/IAQF 2016/2016/Data/Rdata/SWF2.Rdata")
 
 
 

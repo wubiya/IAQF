@@ -113,6 +113,42 @@ simple_regression_swf<-function(sdate,tdate){
 }
 
 
+simple_regression_industry<-function(sdate,tdate){
+  # sdate,tdate is the start/end date of regression, format is like "2015-1-1"
+  # inducol is the column you want to use to represent return, including frequency of day,week,and month 
+  # which is represented by LOG_RTN_1D,LOG_RTN_1W,LOG_RTN_1M
+  # oilcol and spcol is independent variable as log return, which is similar to inducol, containing different frequency, 
+  # but we introduced lag term, can be represented as LOG_RTN_1D_LAG(one term lag),LOG_RTN_1D_LAQ_SQ(two tern lag)
+  
+  if (file.exists(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv')))
+    file.remove(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
+  
+  sink(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'),append=TRUE)
+  cat("SWF","Oil_CUR","p-value","free degree","cor","cor.test",'\n',sep=",")
+  sdate<-as.yearmon(as.Date(sdate))
+  tdate<-as.yearmon(as.Date(tdate))
+  for(i in 1:6){
+    swf<-swf.list[[i]]
+    swf<-MonthData(swf)
+    write.csv(swf, paste0("~/Dropbox/IAQF/code/csvfile/",swf.namelist[i],".csv"))
+    subswf<-swf[swf$Date>= sdate & swf$Date <= tdate & swf$Date %in% oil$Date,]
+    suboil <- oil[oil$Date%in%subswf$Date,]
+    
+    regdata<- data.frame(subswf$PX_LAST,suboil$PX_LAST)
+    colnames(regdata) <-c("SWF","Oil_CUR")
+    
+    lms = lm(regdata)
+    summ <- summary(lms)
+    cortest<-cor.test(subswf$PX_LAST,suboil$PX_LAST)
+    cat(swf.namelist[i],unname(summ$coefficients[-1,3]),unname(summ$coefficients[-1,4]), summ$df[2], cortest$p.value,cortest$estimate, '\n',sep=",")
+    
+  }
+  sink(file=NULL)
+  unlink(paste0("~/Dropbox/IAQF/code/csvfile/",sdate," to ",tdate,'.csv'))
+}
+
+
+
 
 sp500<-AddReturn(sp500)
 oil<-oil.list[[1]]
